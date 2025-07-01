@@ -9,4 +9,10 @@ public class DockerContainer
     public string Status { get; set; }
     public string Ports { get; set; }
     public string Names { get; set; }
+    public string State { get; set; }
+
+    public bool GetState()
+    {
+        return State == "running";
+    }
 }

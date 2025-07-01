@@ -4,26 +4,48 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Container Clerk" Height="450" Width="800">
+        Title="Container Clerk" Height="450" Width="1500">
     <Grid>
-        <Button Content="+" Click="AddComposeProject" Width="30" Height="30" VerticalAlignment="Top"/>
-        <DataGrid x:Name="DockerGrid"
-                  AutoGenerateColumns="True"
-                  VerticalAlignment="Center"
-                  Width="600"
-                  Height="300"
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <Menu Grid.Row="0">
+            <MenuItem Header="_File">
+                <MenuItem Header="Open Docker Compose Yaml" Click="AddComposeProject"/>
+            </MenuItem>
+        </Menu>
+        
+        <DataGrid x:Name="DockerGrid" Grid.Row="1"
+                  AutoGenerateColumns="False"
+                  HorizontalAlignment="Stretch" 
+                  VerticalAlignment="Stretch"
                   IsReadOnly="True"
-                  Margin="10" />
-        <TextBox x:Name="LogTextBox"
-                 Width="600"
-                 Height="300"
-                 VerticalAlignment="Bottom"
-                 FontFamily="Consolas"
-                 FontSize="12"
-                 IsReadOnly="True"
-                 VerticalScrollBarVisibility="Auto"
-                 HorizontalScrollBarVisibility="Auto"
-                 TextWrapping="Wrap"
-                 AcceptsReturn="True" />
+                  FontSize="16"
+                  Margin="10" >
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Name" Binding="{Binding Names}" />
+                <DataGridTextColumn Header="Image" Binding="{Binding Image}" />
+                <DataGridTextColumn Header="Ports" Binding="{Binding Ports}" />
+                <DataGridTextColumn Header="Created At" Binding="{Binding CreatedAt}" />
+                <DataGridTextColumn Header="Status" Binding="{Binding Status}" />
+                <DataGridTextColumn Header="State" Binding="{Binding State}" />
+                <DataGridTemplateColumn Header="">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Content="Start/Stop" Click="StopContainer"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Content="Remove" Click="RemoveContainer"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
     </Grid>
 </Window>

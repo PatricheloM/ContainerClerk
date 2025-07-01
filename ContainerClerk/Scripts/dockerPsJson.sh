@@ -1,1 +1,1 @@
-docker ps --format "{{json .}}"
+docker ps -a --format "{{json .}}"

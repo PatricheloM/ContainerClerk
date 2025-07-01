@@ -57,6 +57,8 @@ public abstract class BaseCommandEngine
         process.BeginErrorReadLine();
 
         await process.WaitForExitAsync();
+        
+        
     }
 
     private static string ConvertToEnvironmentVariableChain(ValueTuple<string, string>[] args)

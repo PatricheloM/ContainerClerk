@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Windows;
+using System.Windows.Controls;
 using ContainerClerk.CommandEngine;
 using ContainerClerk.Model;
 using ContainerClerk.Util;
@@ -33,8 +34,14 @@ public partial class MainWindow
             if (openFileDialog.ShowDialog() != true) return;
 
             var wslAbsolutePath = PathUtils.ConvertToLinuxMountPath(openFileDialog.FileName);
+            
+            var logWindow = new LogWindow();
+            logWindow.SetButtonEnabled(false);
+            logWindow.Show();
 
-            await _dockerCompose.DockerComposeUpAsync(wslAbsolutePath, AppendLogLine);
+            await _dockerCompose.DockerComposeUpAsync(wslAbsolutePath, logWindow.AppendLogLine);
+            
+            logWindow.SetButtonEnabled(true);
         }
         catch (ArgumentException ex)
         {
@@ -46,13 +53,44 @@ public partial class MainWindow
         }
     }
     
-    private void AppendLogLine(string line)
+    private async void StopContainer(object sender, RoutedEventArgs e)
     {
-        Dispatcher.Invoke(() =>
+        try
         {
-            LogTextBox.AppendText(line + Environment.NewLine);
-            LogTextBox.ScrollToEnd();
-        });
+            if (sender is not Button { DataContext: DockerContainer container }) return;
+            
+            if (container.GetState())
+            {
+                await _dockerPs.StopContainer(container.ID);
+            }
+            else
+            {
+                await _dockerPs.StartContainer(container.ID);
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Unexpected exception! {ex.Message}");
+        }
+    }
+    
+    private async void RemoveContainer(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (sender is not Button { DataContext: DockerContainer container }) return;
+            
+            if (container.GetState())
+            {
+                await _dockerPs.StopContainer(container.ID);
+            }
+            
+            await _dockerPs.RemoveContainer(container.ID);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Unexpected exception! {ex.Message}");
+        }
     }
     
     private async Task StartDockerRefreshLoopAsync()
@@ -76,7 +114,7 @@ public partial class MainWindow
                     _dockerContainers.Clear();
                     _dockerContainers.Add(new DockerContainer
                     {
-                        ID = "HIBA",
+                        ID = "ERROR",
                         Image = ex.Message
                     });
                 });
