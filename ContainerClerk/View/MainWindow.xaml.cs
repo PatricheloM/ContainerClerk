@@ -37,7 +37,7 @@ public partial class MainWindow
             
             var logWindow = new LogWindow();
             logWindow.SetButtonEnabled(false);
-            logWindow.Show();
+            logWindow.ShowDialog();
 
             await _dockerCompose.DockerComposeUpAsync(wslAbsolutePath, logWindow.AppendLogLine);
             
