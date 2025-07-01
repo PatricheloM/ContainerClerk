@@ -4,7 +4,7 @@ public class DockerComposeCommandEngine : BaseCommandEngine
 {
     private async Task DockerComposeAsync(string path, Action<string> logCallback, bool status)
     {
-        await RunScriptWithLiveLogging("dockerComposeInFolder.sh", logCallback, ("FOLDER", path), ("STATUS", status ? "up" : "down"));
+        await RunScriptWithLiveLoggingAsync("dockerComposeInFolder.sh", logCallback, default, ("FOLDER", path), ("STATUS", status ? "up" : "down"));
     }
 
     public async Task DockerComposeUpAsync(string path, Action<string> logCallback)

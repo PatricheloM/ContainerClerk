@@ -20,7 +20,7 @@
             <PasswordBox Name="PasswordBox" Width="250" Margin="10" />
             
             <!-- Login Button -->
-            <Button Name="LoginButton" Content="Login" Width="250" Margin="10" Click="LoginButton_Click"/>
+            <Button Name="LoginButton" Content="Login" Width="250" Margin="10" Click="LoginClick"/>
             
             <!-- Status Text -->
             <TextBlock Name="StatusText" Width="250" Margin="10" TextAlignment="Center"/>

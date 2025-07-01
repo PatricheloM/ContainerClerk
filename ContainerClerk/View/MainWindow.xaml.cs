@@ -5,6 +5,7 @@ using ContainerClerk.CommandEngine;
 using ContainerClerk.Model;
 using ContainerClerk.Util;
 using Microsoft.Win32;
+using NLog;
 
 namespace ContainerClerk.View;
 
@@ -12,13 +13,17 @@ public partial class MainWindow
 {
     private readonly DockerComposeCommandEngine _dockerCompose;
     private readonly DockerProcessCommandEngine _dockerPs;
+    private readonly DockerDiagnosticCommandEngine _dockerDiagnostic;
     
     private readonly ObservableCollection<DockerContainer> _dockerContainers = [];
+    
+    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     
     public MainWindow()
     {
         _dockerCompose = new DockerComposeCommandEngine();
         _dockerPs = new DockerProcessCommandEngine();
+        _dockerDiagnostic = new DockerDiagnosticCommandEngine();
         InitializeComponent();
         DockerGrid.ItemsSource = _dockerContainers;
         
@@ -37,7 +42,7 @@ public partial class MainWindow
             
             var logWindow = new LogWindow();
             logWindow.SetButtonEnabled(false);
-            logWindow.ShowDialog();
+            logWindow.Show();
 
             await _dockerCompose.DockerComposeUpAsync(wslAbsolutePath, logWindow.AppendLogLine);
             
@@ -45,10 +50,12 @@ public partial class MainWindow
         }
         catch (ArgumentException ex)
         {
+            Logger.Error(ex, "ArgumentException!");
             MessageBox.Show($"Wrong file! {ex.Message}");
         }
         catch (Exception ex)
         {
+            Logger.Error(ex, "Unexpected exception!");
             MessageBox.Show($"Unexpected exception! {ex.Message}");
         }
     }
@@ -70,6 +77,7 @@ public partial class MainWindow
         }
         catch (Exception ex)
         {
+            Logger.Error(ex, "Unexpected exception!");
             MessageBox.Show($"Unexpected exception! {ex.Message}");
         }
     }
@@ -79,7 +87,9 @@ public partial class MainWindow
         try
         {
             if (sender is not Button { DataContext: DockerContainer container }) return;
-            
+
+            if (MessageBox.Show($"Are you sure you want to delete {container.Names}?", "Delete container", MessageBoxButton.YesNo) != MessageBoxResult.Yes) return;
+
             if (container.GetState())
             {
                 await _dockerPs.StopContainer(container.ID);
@@ -89,6 +99,34 @@ public partial class MainWindow
         }
         catch (Exception ex)
         {
+            Logger.Error(ex, "Unexpected exception!");
+            MessageBox.Show($"Unexpected exception! {ex.Message}");
+        }
+    }
+    
+    private async void LogContainer(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (sender is not Button { DataContext: DockerContainer container }) return;
+
+            var cts = new CancellationTokenSource();
+
+            var logWindow = new LogWindow();
+
+            logWindow.Closing += (_, _) => cts.Cancel();
+            logWindow.SetButtonEnabled(true);
+            logWindow.Show();
+
+            await _dockerDiagnostic.ViewLogsAsync(container.ID, logWindow.AppendLogLine, cts.Token);
+        }
+        catch (TaskCanceledException)
+        {
+            Logger.Info("Container log process SIGTERM.");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "Unexpected exception!");
             MessageBox.Show($"Unexpected exception! {ex.Message}");
         }
     }
@@ -110,6 +148,8 @@ public partial class MainWindow
             }
             catch (Exception ex)
             {
+                Logger.Error(ex, "Unexpected exception while fetching docker containers!");
+                
                 Dispatcher.Invoke(() => {
                     _dockerContainers.Clear();
                     _dockerContainers.Add(new DockerContainer

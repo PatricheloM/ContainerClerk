@@ -1,12 +1,15 @@
 ﻿using System.Diagnostics;
 using System.Text;
 using ContainerClerk.Util;
+using NLog;
 
 namespace ContainerClerk.CommandEngine;
 
 public abstract class BaseCommandEngine
 {
-    protected async Task<string> RunScript(string scriptName, params ValueTuple<string, string>[] args)
+    protected static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+    
+    protected async Task<string> RunScriptAsync(string scriptName, params ValueTuple<string, string>[] args)
     {
         var psi = new ProcessStartInfo
         {
@@ -16,6 +19,8 @@ public abstract class BaseCommandEngine
             UseShellExecute = false,
             CreateNoWindow = true
         };
+        
+        Logger.Info($"Process arguments: {psi.Arguments}");
 
         using var process = new Process();
         
@@ -24,14 +29,19 @@ public abstract class BaseCommandEngine
         
         process.Start();
         
+        Logger.Info($"Running process on PID {process.Id}");
+        
         var output = await process.StandardOutput.ReadToEndAsync();
         
         await process.WaitForExitAsync();
+        
+        Logger.Info($"Command output: {output}");
+        Logger.Info($"Command exitcode: {process.ExitCode}");
 
         return output;
     }
     
-    protected async Task RunScriptWithLiveLogging(string scriptName, Action<string> logCallback, params ValueTuple<string, string>[] args)
+    protected async Task RunScriptWithLiveLoggingAsync(string scriptName, Action<string> logCallback, CancellationToken cancellationToken = default, params ValueTuple<string, string>[] args)
     {
         var psi = new ProcessStartInfo
         {
@@ -42,6 +52,8 @@ public abstract class BaseCommandEngine
             UseShellExecute = false,
             CreateNoWindow = true
         };
+        
+        Logger.Info($"Process arguments: {psi.Arguments}");
 
         using var process = new Process();
         
@@ -52,13 +64,13 @@ public abstract class BaseCommandEngine
         process.ErrorDataReceived += (_, e) => { if (e.Data != null) logCallback(e.Data); };
 
         process.Start();
+        
+        Logger.Info($"Running process on PID {process.Id}");
 
         process.BeginOutputReadLine();
         process.BeginErrorReadLine();
 
-        await process.WaitForExitAsync();
-        
-        
+        await process.WaitForExitAsync(cancellationToken);
     }
 
     private static string ConvertToEnvironmentVariableChain(ValueTuple<string, string>[] args)
@@ -67,6 +79,10 @@ public abstract class BaseCommandEngine
         
         args.ToList().ForEach(arg => sb.Append($"{arg.Item1}={arg.Item2} "));
         
-        return sb.ToString();
+        var s = sb.ToString();
+        
+        Logger.Info($"Environment variable chain: {s}");
+        
+        return s;
     }
 }

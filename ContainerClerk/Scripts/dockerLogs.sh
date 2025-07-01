@@ -1,1 +1,1 @@
-docker logs $ID
+docker logs $ID -f

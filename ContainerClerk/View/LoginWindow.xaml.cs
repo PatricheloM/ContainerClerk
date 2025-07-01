@@ -13,8 +13,11 @@ public partial class LoginWindow
         InitializeComponent();
     }
 
-    private async void LoginButton_Click(object sender, RoutedEventArgs e)
+    private async void LoginClick(object sender, RoutedEventArgs e)
     {
+        LoginButton.IsEnabled = false;
+        StatusText.Text = "Connecting...";
+        
         var registryUrl = UrlTextBox.Text;
         var username = UsernameTextBox.Text;
         var password = PasswordBox.Password;
@@ -26,6 +29,9 @@ public partial class LoginWindow
         }
         
         var status = await _dockerLogin.LoginAsync(registryUrl, username, password);
+        
         StatusText.Text = status ? "Login successful." : "Login failed.";
+        
+        LoginButton.IsEnabled = true;
     }
 }
