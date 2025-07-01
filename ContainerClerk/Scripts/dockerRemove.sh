@@ -1,1 +1,1 @@
-﻿docker rm $ID
+docker rm $ID

@@ -1,0 +1,1 @@
+echo $PW | docker login $URL --username $USERNAME --password-stdin

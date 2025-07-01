@@ -15,6 +15,9 @@
             <MenuItem Header="_File">
                 <MenuItem Header="Open Docker Compose Yaml" Click="AddComposeProject"/>
             </MenuItem>
+            <MenuItem Header="_Settings">
+                <MenuItem Header="Login to registry" Click="OpenLogin"/>
+            </MenuItem>
         </Menu>
         
         <DataGrid x:Name="DockerGrid" Grid.Row="1"

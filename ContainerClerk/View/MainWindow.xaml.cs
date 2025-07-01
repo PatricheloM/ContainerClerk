@@ -29,7 +29,7 @@ public partial class MainWindow
     {
         try
         {
-            var openFileDialog = new OpenFileDialog { Filter = "All (*.*)|*.*" };
+            var openFileDialog = new OpenFileDialog { Filter = "YAML Files (*.yaml, *.yml)|*.yaml;*.yml" };
 
             if (openFileDialog.ShowDialog() != true) return;
 
@@ -122,5 +122,10 @@ public partial class MainWindow
 
             await Task.Delay(1000);
         }
+    }
+
+    private void OpenLogin(object sender, RoutedEventArgs e)
+    {
+        new LoginWindow().ShowDialog();
     }
 }
