@@ -28,6 +28,7 @@
                   FontSize="16"
                   Margin="10" >
             <DataGrid.Columns>
+                <DataGridTextColumn Header="ComposeProject" Binding="{Binding ComposeProject}" />
                 <DataGridTextColumn Header="Name" Binding="{Binding Names}" />
                 <DataGridTextColumn Header="Image" Binding="{Binding Image}" />
                 <DataGridTextColumn Header="Ports" Binding="{Binding Ports}" />
@@ -45,6 +46,13 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Button Content="View Logs" Click="LogContainer"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Content="Open Terminal" Click="OpenTerminal"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>

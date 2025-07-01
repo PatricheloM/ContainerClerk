@@ -68,11 +68,11 @@ public partial class MainWindow
             
             if (container.GetState())
             {
-                await _dockerPs.StopContainer(container.ID);
+                await _dockerPs.StopContainerAsync(container.ID);
             }
             else
             {
-                await _dockerPs.StartContainer(container.ID);
+                await _dockerPs.StartContainerAsync(container.ID);
             }
         }
         catch (Exception ex)
@@ -92,10 +92,10 @@ public partial class MainWindow
 
             if (container.GetState())
             {
-                await _dockerPs.StopContainer(container.ID);
+                await _dockerPs.StopContainerAsync(container.ID);
             }
             
-            await _dockerPs.RemoveContainer(container.ID);
+            await _dockerPs.RemoveContainerAsync(container.ID);
         }
         catch (Exception ex)
         {
@@ -137,7 +137,7 @@ public partial class MainWindow
         {
             try
             {
-                var latest = await _dockerPs.GetDockerContainers();
+                var latest = await _dockerPs.GetDockerContainersAsync();
 
                 Dispatcher.Invoke(() =>
                 {
@@ -167,5 +167,20 @@ public partial class MainWindow
     private void OpenLogin(object sender, RoutedEventArgs e)
     {
         new LoginWindow().ShowDialog();
+    }
+
+    private async void OpenTerminal(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (sender is not Button { DataContext: DockerContainer container }) return;
+
+            await _dockerPs.GetShellAsync(container.ID);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "Unexpected exception!");
+            MessageBox.Show($"Unexpected exception! {ex.Message}");
+        }
     }
 }
