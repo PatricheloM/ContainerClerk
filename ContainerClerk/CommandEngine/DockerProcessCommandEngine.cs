@@ -1,10 +1,11 @@
 ﻿using System.Diagnostics;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using ContainerClerk.Model;
 
 namespace ContainerClerk.CommandEngine;
 
-public class DockerProcessCommandEngine : BaseCommandEngine
+public partial class DockerProcessCommandEngine : BaseCommandEngine
 {
     public async Task<List<DockerContainer>> GetDockerContainersAsync()
     {
@@ -13,8 +14,15 @@ public class DockerProcessCommandEngine : BaseCommandEngine
         return jsonLines.Split('\n', StringSplitOptions.RemoveEmptyEntries).Select(line =>
         {
             var obj = JsonSerializer.Deserialize<DockerContainer>(line);
-            
-            if (obj is not null) obj.ComposeProject = obj.Labels.Split(',').FirstOrDefault(x => x.StartsWith("com.docker.compose.project="))?.Split('=')[1] ?? "";
+
+            if (obj is not null)
+            {
+                obj.ComposeProject = obj.Labels.Split(',').FirstOrDefault(x => x.StartsWith("com.docker.compose.project="))?.Split('=')[1] ?? "";
+                
+                var matches = PortRegex().Matches(obj.Ports);
+                
+                obj.Ports = $"{matches.LastOrDefault()?.Groups[0].Value ?? ""}";
+            }
             
             return obj;
         }).OfType<DockerContainer>().ToList();
@@ -51,4 +59,7 @@ public class DockerProcessCommandEngine : BaseCommandEngine
     {
         await RunScriptAsync("dockerRemove.sh", ("ID", id));
     }
+
+    [GeneratedRegex(@"(\d+)->(\d+)")]
+    private static partial Regex PortRegex();
 }

@@ -1,6 +1,8 @@
 ﻿using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Navigation;
 using ContainerClerk.CommandEngine;
 using ContainerClerk.Model;
 using ContainerClerk.Util;
@@ -130,6 +132,26 @@ public partial class MainWindow
             MessageBox.Show($"Unexpected exception! {ex.Message}");
         }
     }
+
+    private async void OpenTerminal(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (sender is not Button { DataContext: DockerContainer container }) return;
+
+            await _dockerPs.GetShellAsync(container.ID);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "Unexpected exception!");
+            MessageBox.Show($"Unexpected exception! {ex.Message}");
+        }
+    }
+
+    private void OpenLogin(object sender, RoutedEventArgs e)
+    {
+        new LoginWindow().ShowDialog();
+    }
     
     private async Task StartDockerRefreshLoopAsync()
     {
@@ -164,23 +186,66 @@ public partial class MainWindow
         }
     }
 
-    private void OpenLogin(object sender, RoutedEventArgs e)
+    private async void StartAll(object sender, RoutedEventArgs e)
     {
-        new LoginWindow().ShowDialog();
+        var ids = new List<string>(_dockerContainers.Select(x => x.ID));
+
+        foreach (var id in ids)
+        {
+            await _dockerPs.StartContainerAsync(id);
+        }
     }
 
-    private async void OpenTerminal(object sender, RoutedEventArgs e)
+    private async void StopAll(object sender, RoutedEventArgs e)
     {
-        try
-        {
-            if (sender is not Button { DataContext: DockerContainer container }) return;
+        var ids = new List<string>(_dockerContainers.Select(x => x.ID));
 
-            await _dockerPs.GetShellAsync(container.ID);
-        }
-        catch (Exception ex)
+        foreach (var id in ids)
         {
-            Logger.Error(ex, "Unexpected exception!");
-            MessageBox.Show($"Unexpected exception! {ex.Message}");
+            await _dockerPs.StopContainerAsync(id);
+        }
+    }
+
+    private void StartProject(object sender, RoutedEventArgs e)
+    {
+        var projectList = new List<string>(_dockerContainers.Select(x => x.ComposeProject).Distinct().Where(x => !string.IsNullOrWhiteSpace(x)));
+        new ProjectSelectWindow(projectList, Callback, true).ShowDialog();
+
+        async void Callback(string projectName)
+        {
+            var ids = new List<string>(_dockerContainers.Where(x => x.ComposeProject == projectName).Select(x => x.ID));
+            
+            foreach (var id in ids)
+            {
+                await _dockerPs.StartContainerAsync(id);
+            }
+        }
+    }
+
+    private void StopProject(object sender, RoutedEventArgs e)
+    {
+        var projectList = new List<string>(_dockerContainers.Select(x => x.ComposeProject).Distinct().Where(x => !string.IsNullOrWhiteSpace(x)));
+        new ProjectSelectWindow(projectList, Callback, false).ShowDialog();
+
+        async void Callback(string projectName)
+        {
+            var ids = new List<string>(_dockerContainers.Where(x => x.ComposeProject == projectName).Select(x => x.ID));
+
+            foreach (var id in ids)
+            {
+                await _dockerPs.StopContainerAsync(id);
+            }
+        }
+    }
+
+    private void HyperlinkRequestNavigate(object sender, RequestNavigateEventArgs e)
+    {
+        var uriString = e.Uri.ToString();
+
+        if (!string.IsNullOrWhiteSpace(uriString) && int.TryParse(uriString.Split("->")[0], out var port))
+        {
+            Process.Start(new ProcessStartInfo($"http://localhost:{port}/") { UseShellExecute = true });
+            e.Handled = true;
         }
     }
 }

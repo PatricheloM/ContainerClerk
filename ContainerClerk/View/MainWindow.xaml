@@ -13,6 +13,10 @@
         
         <Menu Grid.Row="0">
             <MenuItem Header="_File">
+                <MenuItem Header="Start All" Click="StartAll"/>
+                <MenuItem Header="Stop All" Click="StopAll"/>
+                <MenuItem Header="Start Compose Project" Click="StartProject"/>
+                <MenuItem Header="Stop Compose Project" Click="StopProject"/>
                 <MenuItem Header="Open Docker Compose Yaml" Click="AddComposeProject"/>
             </MenuItem>
             <MenuItem Header="_Settings">
@@ -31,7 +35,17 @@
                 <DataGridTextColumn Header="ComposeProject" Binding="{Binding ComposeProject}" />
                 <DataGridTextColumn Header="Name" Binding="{Binding Names}" />
                 <DataGridTextColumn Header="Image" Binding="{Binding Image}" />
-                <DataGridTextColumn Header="Ports" Binding="{Binding Ports}" />
+                <DataGridTemplateColumn Header="Ports">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock>
+                                <Hyperlink NavigateUri="{Binding Ports}" RequestNavigate="HyperlinkRequestNavigate">
+                                    <TextBlock Text="{Binding Ports}" />
+                                </Hyperlink>
+                            </TextBlock>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTextColumn Header="Created At" Binding="{Binding CreatedAt}" />
                 <DataGridTextColumn Header="Status" Binding="{Binding Status}" />
                 <DataGridTextColumn Header="State" Binding="{Binding State}" />
